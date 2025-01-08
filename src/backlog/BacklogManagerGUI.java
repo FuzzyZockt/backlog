@@ -5,46 +5,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 
-class Task {
-    private String name;
-    private String description;
-    private String status;
-
-    public Task(String name, String description, String status) {
-        this.name = name;
-        this.description = description;
-        this.status = status;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    @Override
-    public String toString() {
-        return name + " (" + status + ")";
-    }
-}
 
 public class BacklogManagerGUI {
     private ArrayList<Task> backlog;
@@ -63,13 +23,22 @@ public class BacklogManagerGUI {
 
     private void initializeGUI() {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(500, 400);
+        frame.setSize(600, 400);
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
         JScrollPane scrollPane = new JScrollPane(taskList);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
+
+        taskList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    viewTaskDetails();
+                }
+            }
+        });
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout());
@@ -97,22 +66,31 @@ public class BacklogManagerGUI {
         JTextField descriptionField = new JTextField(10);
         String[] statuses = {"To Do", "In Progress", "Done"};
         JComboBox<String> statusBox = new JComboBox<>(statuses);
+        JTextField deadlineField = new JTextField(10);
+        JTextField assigneeField = new JTextField(10);
 
         JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(5, 2));
         panel.add(new JLabel("Name:"));
         panel.add(nameField);
         panel.add(new JLabel("Description:"));
         panel.add(descriptionField);
         panel.add(new JLabel("Status:"));
         panel.add(statusBox);
+        panel.add(new JLabel("Deadline:"));
+        panel.add(deadlineField);
+        panel.add(new JLabel("Assignee:"));
+        panel.add(assigneeField);
 
         int result = JOptionPane.showConfirmDialog(frame, panel, "Add Task", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             String name = nameField.getText();
             String description = descriptionField.getText();
             String status = (String) statusBox.getSelectedItem();
+            String deadline = deadlineField.getText();
+            String assignee = assigneeField.getText();
 
-            Task newTask = new Task(name, description, status);
+            Task newTask = new Task(name, description, status, deadline, assignee);
             backlog.add(newTask);
             taskListModel.addElement(newTask);
         }
@@ -130,20 +108,29 @@ public class BacklogManagerGUI {
         String[] statuses = {"To Do", "In Progress", "Done"};
         JComboBox<String> statusBox = new JComboBox<>(statuses);
         statusBox.setSelectedItem(selectedTask.getStatus());
+        JTextField deadlineField = new JTextField(selectedTask.getDeadline(), 10);
+        JTextField assigneeField = new JTextField(selectedTask.getAssignee(), 10);
 
         JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(5, 2));
         panel.add(new JLabel("Name:"));
         panel.add(nameField);
         panel.add(new JLabel("Description:"));
         panel.add(descriptionField);
         panel.add(new JLabel("Status:"));
         panel.add(statusBox);
+        panel.add(new JLabel("Deadline:"));
+        panel.add(deadlineField);
+        panel.add(new JLabel("Assignee:"));
+        panel.add(assigneeField);
 
         int result = JOptionPane.showConfirmDialog(frame, panel, "Update Task", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             selectedTask.setName(nameField.getText());
             selectedTask.setDescription(descriptionField.getText());
             selectedTask.setStatus((String) statusBox.getSelectedItem());
+            selectedTask.setDeadline(deadlineField.getText());
+            selectedTask.setAssignee(assigneeField.getText());
 
             taskList.repaint();
         }
@@ -163,8 +150,23 @@ public class BacklogManagerGUI {
         }
     }
 
+    private void viewTaskDetails() {
+        Task selectedTask = taskList.getSelectedValue();
+        if (selectedTask == null) {
+            JOptionPane.showMessageDialog(frame, "Please select a task to view details.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String details = "Name: " + selectedTask.getName() + "\n"
+                + "Description: " + selectedTask.getDescription() + "\n"
+                + "Status: " + selectedTask.getStatus() + "\n"
+                + "Deadline: " + selectedTask.getDeadline() + "\n"
+                + "Assignee: " + selectedTask.getAssignee();
+
+        JOptionPane.showMessageDialog(frame, details, "Task Details", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(BacklogManagerGUI::new);
     }
 }
-
